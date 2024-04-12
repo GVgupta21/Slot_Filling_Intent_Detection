@@ -9,6 +9,13 @@ import config as cfg
 from data2index_ver2 import train_data, test_data, index2slot_dict
 from model import *
 
+from matplotlib import pyplot as plt
+
+accuracy_hist = []
+f1_hist = []
+intent_loss_hist = []
+slot_loss_hist = []
+
 epoch_num = cfg.total_epoch
 
 slot_model = Slot().to(device)
@@ -69,8 +76,9 @@ for epoch in range(epoch_num):
         
 		# Log
         if batch_index % 100 == 0 and batch_index > 0:
-            print('Slot loss: {:.4f} \t Intent loss: {:.4f}'.format(sum(slot_loss_history[-100:])/100.0, \
-                sum(intent_loss_history[-100:])/100.0))
+            print('Slot loss: {:.4f} \t Intent loss: {:.4f}'.format(sum(slot_loss_history[-100:])/100.0, sum(intent_loss_history[-100:])/100.0))
+            intent_loss_hist.append(sum(intent_loss_history[-100:])/100.0)
+            slot_loss_hist.append(sum(slot_loss_history[-100:])/100.0)
 
     # Evaluation 
     total_test = len(test_data)
@@ -133,8 +141,24 @@ for epoch in range(epoch_num):
         best_epoch_slot = epoch
     print('*'*20)
     print('Epoch: [{}/{}], Intent Val Acc: {:.4f} \t Slot F1 score: {:.4f}'.format(epoch+1, epoch_num, 100.0*correct_num/total_test, F1_score))
+    accuracy_hist.append(100.0*correct_num/total_test)
+    f1_hist.append(F1_score)
     print('*'*20)
     
     print('Best Intent Acc: {:.4f} at Epoch: [{}]'.format(100.0*best_correct_num/total_test, best_epoch+1))
     print('Best F1 score: {:.4f} at Epoch: [{}]'.format(best_F1_score, best_epoch_slot+1))
 
+
+plt.plot(accuracy_hist)
+plt.savefig("accuracy_hist.png")
+
+
+plt.plot(f1_hist)
+plt.savefig("f1_hist.png")
+
+plt.plot(slot_loss_hist)
+plt.savefig("slot_loss_hist.png")
+
+
+plt.plot(intent_loss_hist)
+plt.savefig("intent_loss_hist.png")
